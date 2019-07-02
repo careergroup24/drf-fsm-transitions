@@ -6,7 +6,7 @@ def get_transition_viewset_method(transition_name, **kwargs):
     '''
     Create a viewset method for the provided `transition_name`
     '''
-    @action(methods=['post'], detail=True, **kwargs)
+    @action(methods=['post'], detail=True, url_name=transition_name, url_path=transition_name, **kwargs)
     def inner_func(self, request, pk=None, **kwargs):
         object = self.get_object()
         transition_method = getattr(object, transition_name)
@@ -18,6 +18,12 @@ def get_transition_viewset_method(transition_name, **kwargs):
 
         serializer = self.get_serializer(object)
         return Response(serializer.data)
+
+    inner_func.__name__ = transition_name
+    try:
+        inner_func.mapping = dict.fromkeys(inner_func.mapping, transition_name)
+    except AttributeError:
+        pass
 
     return inner_func
 
